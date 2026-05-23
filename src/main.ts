@@ -10,7 +10,6 @@ import {
 	type ProcessorDeps,
 	type ProcessorOptions,
 } from "./applemusic/processor";
-import { appleMusicLivePreviewExtension } from "./applemusic/livePreview";
 
 export default class RichAppleMusicPlugin extends Plugin {
 	settings: RichAppleMusicSettings = { ...DEFAULT_SETTINGS };
@@ -29,7 +28,6 @@ export default class RichAppleMusicPlugin extends Plugin {
 		};
 
 		this.registerMarkdownPostProcessor(createAppleMusicPostProcessor(deps));
-		this.registerEditorExtension(appleMusicLivePreviewExtension(deps));
 
 		this.addSettingTab(new RichAppleMusicSettingTab(this.app, this));
 	}

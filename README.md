@@ -9,12 +9,11 @@ An Obsidian plugin that turns `music.apple.com` links into iMessage-style rich p
 ## Features
 
 - Recognizes song, album, artist, music video, playlist and station links from `music.apple.com` (any storefront).
-- Renders cards in **both** reading view and Live Preview / Source mode.
+- Renders cards in reading view. The editor (Live Preview / Source mode) keeps the raw URL untouched so it stays directly editable.
 - Fetches public metadata from the iTunes Lookup API so no Apple Developer credentials or sign-in are needed.
 - Inline 30 second audio preview with a single tap-to-play overlay on the artwork (toggleable).
 - Cards adapt to light and dark themes via Obsidian CSS variables.
 - Smart link handling: only naked URLs become cards by default, with an opt-in to also convert `[label](url)` markdown links.
-- In Live Preview, clicking on the line (or moving the cursor onto it) automatically reveals the raw URL so you can edit it.
 - In-memory cache so the same link is only fetched once per session, even when you scroll back and forth between notes.
 
 ## Example
@@ -37,11 +36,10 @@ When the note is rendered, the URL is replaced with a card showing the cover art
 
 ## How it works
 
-1. **Reading view**: a markdown post processor scans each rendered chunk for `<a href="...">` elements pointing at `music.apple.com`.
-2. **Live Preview / Source mode**: a CodeMirror 6 `ViewPlugin` walks the visible document and uses a block `replace` decoration to swap standalone Apple Music URL lines with a card widget. Whenever the cursor or selection touches that line, the decoration is suppressed so you can edit the raw text.
-3. The URL is parsed into its storefront, kind (song/album/artist/...) and ids.
-4. The plugin calls `https://itunes.apple.com/lookup` (a free, no-auth Apple endpoint) to fetch title, artist, artwork, preview URL and other metadata.
-5. The original anchor (or paragraph, if the anchor was the only thing in it) is swapped for a rich card. While metadata is loading a skeleton card is shown. The cache is shared between reading view and Live Preview so each link is fetched at most once per session.
+1. A markdown post processor scans each rendered chunk in reading view for `<a href="...">` elements pointing at `music.apple.com`.
+2. The URL is parsed into its storefront, kind (song/album/artist/...) and ids.
+3. The plugin calls `https://itunes.apple.com/lookup` (a free, no-auth Apple endpoint) to fetch title, artist, artwork, preview URL and other metadata.
+4. The original anchor (or paragraph, if the anchor was the only thing in it) is swapped for a rich card. While metadata is loading a skeleton card is shown. Metadata is cached in memory so each link is fetched at most once per session.
 
 ## Privacy
 
@@ -51,7 +49,7 @@ When the note is rendered, the URL is replaced with a card showing the cover art
 
 ## Caveats
 
-- In Live Preview, only URLs that sit on their own line (with a blank line above and below, or at the very start / end of the note) become cards. URLs in the middle of a paragraph are left untouched so they don't shred the surrounding prose.
+- Cards only render in reading view. In Live Preview / Source mode the URL is left as plain text so the link stays directly editable; switch the note to reading view to see the card.
 - Playlists and stations don't expose deep metadata via the lookup API; their cards fall back to a slug-based title and a generic icon.
 - Apple Music subscription is not required to view the card or play the 30 second preview, but is required to open the full track in Apple Music.
 
@@ -75,7 +73,6 @@ src/
     api.ts                # iTunes Lookup client + memory cache
     card.ts               # DOM renderer for the rich card
     processor.ts          # reading-view markdown post processor
-    livePreview.ts        # CodeMirror 6 ViewPlugin + widget for Live Preview
 styles.css                # card styling
 ```
 

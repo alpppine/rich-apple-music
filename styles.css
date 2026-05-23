@@ -1,0 +1,278 @@
+/*
+ * Rich Apple Music Links - rendered card styles.
+ *
+ * The card is laid out as a horizontal flexbox: artwork on the left,
+ * metadata in the middle, and a small badge / open button on the right.
+ * Colors lean on Obsidian theme variables so the card sits well in both
+ * light and dark themes.
+ */
+
+.ram-card {
+	--ram-card-radius: 14px;
+	--ram-card-artwork-size: 84px;
+	--ram-card-gap: 14px;
+	--ram-card-padding: 12px;
+	--ram-card-bg: var(--background-secondary);
+	--ram-card-border: var(--background-modifier-border);
+	--ram-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.06);
+
+	display: flex;
+	align-items: stretch;
+	gap: var(--ram-card-gap);
+	padding: var(--ram-card-padding);
+	margin: 0.5em 0;
+	background: var(--ram-card-bg);
+	border: 1px solid var(--ram-card-border);
+	border-radius: var(--ram-card-radius);
+	box-shadow: var(--ram-card-shadow);
+	overflow: hidden;
+	transition: transform 120ms ease, box-shadow 120ms ease;
+	max-width: 520px;
+}
+
+.ram-card:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.ram-card__artwork-link {
+	flex: 0 0 var(--ram-card-artwork-size);
+	display: block;
+	text-decoration: none;
+	color: inherit;
+}
+
+.ram-card__artwork {
+	position: relative;
+	width: var(--ram-card-artwork-size);
+	height: var(--ram-card-artwork-size);
+	border-radius: 10px;
+	overflow: hidden;
+	background: var(--background-modifier-hover);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.ram-card__artwork-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.ram-card__artwork--placeholder {
+	color: var(--text-muted);
+}
+
+.ram-card__artwork--placeholder svg {
+	width: 32px;
+	height: 32px;
+}
+
+.ram-card__body {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 4px;
+}
+
+.ram-card__title-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.ram-card__title {
+	font-weight: 600;
+	color: var(--text-normal);
+	text-decoration: none;
+	font-size: var(--font-ui-medium);
+	line-height: 1.25;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.ram-card__title:hover {
+	text-decoration: underline;
+}
+
+.ram-card__explicit {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 3px;
+	background: var(--text-muted);
+	color: var(--background-primary);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.ram-card__subtitle {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	line-height: 1.3;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ram-card__meta {
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+	line-height: 1.3;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ram-card__aside {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 6px;
+	padding-left: 4px;
+}
+
+.ram-card__badge {
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+	color: var(--text-muted);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.ram-card__open {
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+	color: var(--interactive-accent);
+	text-decoration: none;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: var(--background-modifier-hover);
+}
+
+.ram-card__open:hover {
+	background: var(--background-modifier-active-hover, var(--background-modifier-hover));
+	text-decoration: none;
+}
+
+/* Preview player overlay */
+
+.ram-card__play-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.4) 100%);
+	opacity: 0;
+	transition: opacity 120ms ease;
+}
+
+.ram-card__artwork:hover .ram-card__play-overlay,
+.ram-card__play-overlay--playing {
+	opacity: 1;
+}
+
+.ram-card__play-button {
+	all: unset;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.92);
+	color: #111;
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	transition: transform 80ms ease;
+}
+
+.ram-card__play-button:hover {
+	transform: scale(1.05);
+}
+
+.ram-card__play-button:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 2px;
+}
+
+.ram-card__play-button svg {
+	width: 18px;
+	height: 18px;
+}
+
+.ram-card__audio {
+	display: none;
+}
+
+/* Loading skeleton */
+
+.ram-card--loading .ram-card__body {
+	gap: 8px;
+}
+
+.ram-card__skeleton {
+	background: var(--background-modifier-hover);
+	border-radius: 6px;
+	height: 12px;
+	animation: ram-card-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.ram-card__skeleton--title {
+	width: 70%;
+	height: 14px;
+}
+
+.ram-card__skeleton--subtitle {
+	width: 55%;
+}
+
+.ram-card__skeleton--meta {
+	width: 40%;
+	height: 10px;
+}
+
+@keyframes ram-card-skeleton-pulse {
+	0%, 100% { opacity: 0.55; }
+	50% { opacity: 1; }
+}
+
+/* Error state */
+
+.ram-card--error .ram-card__artwork {
+	background: var(--background-modifier-error, var(--background-modifier-hover));
+	color: var(--text-error, var(--text-muted));
+}
+
+.ram-card--error .ram-card__title {
+	color: var(--text-error, var(--text-normal));
+}
+
+/* Narrow viewport tweaks */
+
+@media (max-width: 480px) {
+	.ram-card {
+		--ram-card-artwork-size: 64px;
+		--ram-card-gap: 10px;
+		--ram-card-padding: 10px;
+	}
+
+	.ram-card__aside {
+		display: none;
+	}
+}

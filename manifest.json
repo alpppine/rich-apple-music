@@ -1,0 +1,10 @@
+{
+	"id": "rich-apple-music",
+	"name": "Rich Apple Music Links",
+	"version": "1.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "Render music.apple.com links as iMessage-style rich preview cards with artwork, metadata, and a 30 second preview.",
+	"author": "alpppine",
+	"authorUrl": "https://github.com/alpppine",
+	"isDesktopOnly": false
+}

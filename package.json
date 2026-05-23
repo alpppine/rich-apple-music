@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-rich-apple-music",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Render music.apple.com links as iMessage-style rich preview cards in Obsidian.",
 	"main": "main.js",
 	"type": "module",

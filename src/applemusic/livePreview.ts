@@ -1,12 +1,9 @@
-import type { Extension } from "@codemirror/state";
-import { RangeSetBuilder } from "@codemirror/state";
+import type { EditorState, Extension } from "@codemirror/state";
+import { RangeSetBuilder, StateField } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
-	type EditorView,
-	type PluginValue,
-	ViewPlugin,
-	type ViewUpdate,
+	EditorView,
 	WidgetType,
 } from "@codemirror/view";
 
@@ -105,58 +102,55 @@ class AppleMusicCardWidget extends WidgetType {
 	}
 }
 
+/**
+ * Block decorations are illegal when produced by a ViewPlugin in CodeMirror
+ * 6 - the editor throws "Block decorations may not be specified via plugins"
+ * during render, which leaves the note unable to display. We compute the
+ * decoration set inside a StateField instead so block widgets are sourced
+ * from state, as CM6 requires.
+ */
 function buildDecorations(
-	view: EditorView,
+	state: EditorState,
 	deps: ProcessorDeps,
 ): DecorationSet {
 	const builder = new RangeSetBuilder<Decoration>();
 	const options = deps.getOptions();
-	const doc = view.state.doc;
-	const selectionRanges = view.state.selection.ranges;
+	const doc = state.doc;
+	const selectionRanges = state.selection.ranges;
 
-	let lastLineProcessed = 0;
-	for (const { from, to } of view.visibleRanges) {
-		let pos = from;
-		while (pos <= to) {
-			const line = doc.lineAt(pos);
-			if (line.number <= lastLineProcessed) {
-				pos = line.to + 1;
-				continue;
-			}
-			lastLineProcessed = line.number;
-			pos = line.to + 1;
+	for (let lineNumber = 1; lineNumber <= doc.lines; lineNumber++) {
+		const line = doc.line(lineNumber);
 
-			const match = matchLine(line.text);
-			if (!match) continue;
-			if (match.isLabeled && !options.convertLabeledLinks) continue;
+		const match = matchLine(line.text);
+		if (!match) continue;
+		if (match.isLabeled && !options.convertLabeledLinks) continue;
 
-			const link = parseAppleMusicUrl(match.url);
-			if (!link) continue;
+		const link = parseAppleMusicUrl(match.url);
+		if (!link) continue;
 
-			// Only swap when the URL is its own paragraph. Otherwise we'd
-			// tear a block widget into the middle of soft-wrapped prose.
-			if (!isStandaloneParagraph(view, line.number)) continue;
+		// Only swap when the URL is its own paragraph. Otherwise we'd
+		// tear a block widget into the middle of soft-wrapped prose.
+		if (!isStandaloneParagraph(state, lineNumber)) continue;
 
-			const selectionOnLine = selectionRanges.some(
-				(range) => range.from <= line.to && range.to >= line.from,
-			);
-			if (selectionOnLine) continue;
+		const selectionOnLine = selectionRanges.some(
+			(range) => range.from <= line.to && range.to >= line.from,
+		);
+		if (selectionOnLine) continue;
 
-			builder.add(
-				line.from,
-				line.to,
-				Decoration.replace({
-					widget: new AppleMusicCardWidget(link, deps),
-					block: true,
-				}),
-			);
-		}
+		builder.add(
+			line.from,
+			line.to,
+			Decoration.replace({
+				widget: new AppleMusicCardWidget(link, deps),
+				block: true,
+			}),
+		);
 	}
 	return builder.finish();
 }
 
-function isStandaloneParagraph(view: EditorView, lineNumber: number): boolean {
-	const doc = view.state.doc;
+function isStandaloneParagraph(state: EditorState, lineNumber: number): boolean {
+	const doc = state.doc;
 	const prevBlank =
 		lineNumber === 1 || doc.line(lineNumber - 1).text.trim().length === 0;
 	const nextBlank =
@@ -166,26 +160,16 @@ function isStandaloneParagraph(view: EditorView, lineNumber: number): boolean {
 }
 
 export function appleMusicLivePreviewExtension(deps: ProcessorDeps): Extension {
-	return ViewPlugin.fromClass(
-		class implements PluginValue {
-			decorations: DecorationSet;
-
-			constructor(view: EditorView) {
-				this.decorations = buildDecorations(view, deps);
-			}
-
-			update(update: ViewUpdate): void {
-				if (
-					update.docChanged ||
-					update.viewportChanged ||
-					update.selectionSet
-				) {
-					this.decorations = buildDecorations(update.view, deps);
-				}
-			}
+	return StateField.define<DecorationSet>({
+		create(state) {
+			return buildDecorations(state, deps);
 		},
-		{
-			decorations: (plugin) => plugin.decorations,
+		update(decorations, tr) {
+			if (tr.docChanged || tr.selection) {
+				return buildDecorations(tr.state, deps);
+			}
+			return decorations;
 		},
-	);
+		provide: (field) => EditorView.decorations.from(field),
+	});
 }
